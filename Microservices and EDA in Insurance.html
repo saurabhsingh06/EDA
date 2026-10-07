@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Microservices and EDA in Insurance</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:#fff;--text:#1b2033;--muted:#5d6580;--line:#e3e6f0;
+  --accent:#4f46e5;--accent-soft:#eceafe;--warn:#b45309;--warn-soft:#fef3e2;
+  --ok:#0f766e;--ok-soft:#e0f5f2;--bad:#b91c1c;--bad-soft:#fdeaea;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1220;--card:#181c30;--text:#e8eaf6;--muted:#9aa2c4;--line:#2a2f4a;
+    --accent:#8b86ff;--accent-soft:#25244a;--warn:#fbbf24;--warn-soft:#3a2d12;
+    --ok:#5eead4;--ok-soft:#10312e;--bad:#fca5a5;--bad-soft:#3b1a1a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1220;--card:#181c30;--text:#e8eaf6;--muted:#9aa2c4;--line:#2a2f4a;
+  --accent:#8b86ff;--accent-soft:#25244a;--warn:#fbbf24;--warn-soft:#3a2d12;
+  --ok:#5eead4;--ok-soft:#10312e;--bad:#fca5a5;--bad-soft:#3b1a1a;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:20px 18px 56px}
+header{padding:36px 28px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed 60%,#db2777)}
+header small{opacity:.85;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+header h1{margin:8px 0 0;font-size:clamp(24px,5vw,34px);line-height:1.2}
+section{margin-top:36px}
+h2{font-size:22px;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+h2 .n{background:var(--accent);color:#fff;border-radius:8px;font-size:14px;padding:2px 10px}
+h3{margin:0 0 8px;font-size:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:0;margin:0;list-style:none;counter-reset:i}
+.grid li{counter-increment:i;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 48px;position:relative;font-size:15px}
+.grid li::before{content:counter(i);position:absolute;left:12px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.callout{border-radius:14px;padding:16px 18px;margin:14px 0}
+.callout.info{background:var(--accent-soft)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.ok{background:var(--ok-soft);color:var(--ok)}
+.callout strong{color:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 14px;font-size:14px;font-weight:600}
+ul.pts{margin:0;padding-left:20px}
+ul.pts li{margin:6px 0}
+a{color:var(--accent);font-weight:600}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;margin-bottom:10px;background:var(--bad-soft);color:var(--bad)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:360px}
+th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:15px}
+th{background:var(--accent-soft);color:var(--accent)}
+tr:last-child td{border-bottom:0}
+.b{font-weight:700;border-radius:999px;padding:3px 12px;font-size:13px;white-space:nowrap}
+.b.r{background:var(--warn-soft);color:var(--warn)}
+.b.k{background:var(--ok-soft);color:var(--ok)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <small>Architecture Note</small>
+  <h1>Microservices and Event-Driven Architecture in Insurance</h1>
+</header>
+
+<div class="callout info" style="margin-top:16px">
+  <a href="https://lnkd.in/dVJCe3aE" target="_blank" rel="noopener">Kafka set-up flow diagram</a>
+</div>
+
+<section>
+  <h2><span class="n">1</span>Background</h2>
+  <p>In an insurance company, a single event triggers many processes in the background:</p>
+  <ol class="grid">
+    <li>Quote suggestion</li>
+    <li>KYC</li>
+    <li>Pricing engine</li>
+    <li>Underwriter management</li>
+    <li>Fetching details from multiple vendors such as Vahan and HyperVerge</li>
+    <li>Payment gateway integration</li>
+    <li>Payment</li>
+    <li>Accounting</li>
+    <li>Re-insurance</li>
+    <li>Policies and endorsements</li>
+    <li>IRDAI reporting</li>
+    <li>Claims</li>
+    <li>...and more</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="n">2</span>Why Microservices</h2>
+  <div class="callout info">
+    At scale, a monolithic architecture doesn't work, so we introduced a <strong>microservice architecture</strong>.
+  </div>
+  <p>In a distributed system, the services need a way to communicate with each other. For this we need <strong>Event-Driven Architecture (EDA)</strong>.</p>
+</section>
+
+<section>
+  <h2><span class="n">3</span>Communication Options</h2>
+  <div class="callout warn">
+    <strong>HTTP calls</strong> are the basic way to communicate, but they become a single point of failure (SPOF).
+  </div>
+  <p>The alternatives we considered:</p>
+  <div class="chips">
+    <span class="chip">Redis Streams</span>
+    <span class="chip">SQS + SNS</span>
+    <span class="chip">EventBridge</span>
+    <span class="chip">Kafka</span>
+    <span class="chip">RabbitMQ</span>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>3.1 Redis Streams</h3>
+    <span class="tag">RAM concern</span>
+    <p style="margin-top:0">For scale, assume traffic of around 10M (in our case it will be more than that).</p>
+    <ul class="pts">
+      <li>Redis Streams stores all messages in RAM.</li>
+      <li>At scale, RAM is expensive, so the cost goes up.</li>
+      <li>If a consumer is not good enough (slow or lagging), messages pile up in memory.</li>
+      <li>Insufficient RAM can then crash the server.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>3.2 SQS with SNS</h3>
+    <span class="tag">Fire and forget</span>
+    <ul class="pts">
+      <li>In SQS, a single message can be consumed by only one consumer, which must delete the message after consumption.</li>
+      <li>This can be solved by using SNS for a fan-out architecture.</li>
+      <li>However, SNS works on the fire-and-forget principle.</li>
+      <li>For a regulatory product, we cannot tolerate missing messages.</li>
+      <li>Hence these services are mostly used for communication and notification purposes.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>3.3 EventBridge</h3>
+    <span class="tag">Vendor lock-in</span>
+    <ul class="pts">
+      <li>It is a great EDA solution. We explored it extensively while finalizing, and it has strong community support and is handy to use.</li>
+      <li>Internally it uses many other AWS services such as SQS and S3.</li>
+      <li>It is cheaper in the initial phase.</li>
+      <li>However, using it long term locks us in with AWS.</li>
+      <li>Switching to another provider becomes a nightmare.</li>
+      <li>AWS also charges more at scale.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>3.4 Kafka vs RabbitMQ</h3>
+    <p style="margin-top:0">One of the cheat sheets I follow to decide between Kafka and RabbitMQ:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Requirement</th><th>Better fit</th></tr></thead>
+        <tbody>
+          <tr><td>Background jobs</td><td><span class="b r">🐇 RabbitMQ</span></td></tr>
+          <tr><td>Worker queue</td><td><span class="b r">🐇 RabbitMQ</span></td></tr>
+          <tr><td>Complex routing</td><td><span class="b r">🐇 RabbitMQ</span></td></tr>
+          <tr><td>Task acknowledgement</td><td><span class="b r">🐇 RabbitMQ</span></td></tr>
+          <tr><td>High-volume event stream</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Event replay</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Many independent consumers</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Event sourcing</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Streaming analytics</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Data pipeline</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>ML event pipeline</td><td><span class="b k">🟠 Kafka</span></td></tr>
+          <tr><td>Microservice event backbone</td><td><span class="b k">🟠 Kafka</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4</span>Decision</h2>
+  <div class="callout ok">
+    Our requirements fit Kafka more closely: event replay, high throughput, and multiple consumers working independently. Hence we chose <strong>Kafka over RabbitMQ</strong>.
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>References</h2>
+  <div class="callout info">
+    I love to deep dive into the root and fundamentals, which makes me different from other developers.
+  </div>
+  <div class="card">
+    <ul class="pts">
+      <li><a href="https://github.com/saurabhsingh06/Kafka" target="_blank" rel="noopener">Kafka code (GitHub)</a></li>
+      <li><a href="https://github.com/saurabhsingh06/kafka-sdk" target="_blank" rel="noopener">Kafka SDK code (GitHub)</a></li>
+    </ul>
+  </div>
+</section>
+</div>
+</body>
+</html>
